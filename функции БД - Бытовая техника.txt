@@ -1,0 +1,481 @@
+-----------1 функция - сведения о технике----------
+
+create or replace function app_info()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	order by app_id ASC;
+end;
+$$ LANGUAGE plpgsql;
+
+---------------2 функция - сортировка---------------
+
+create or replace function sort_by_release()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	order by release_date ASC;
+end;
+$$ LANGUAGE plpgsql;
+
+//////
+
+create or replace function sort_by_supplier()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	order by supplier_name ASC;
+end;
+$$ LANGUAGE plpgsql;
+
+//////
+
+create or replace function sort_by_price()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	order by price ASC;
+end;
+$$ LANGUAGE plpgsql;
+
+/////
+
+create or replace function sort_by_sale()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	order by sale_date ASC;
+end;
+$$ LANGUAGE plpgsql;
+
+-------------3 функция - самая дорогая, дешевая, средняя стоймость-----------------------------
+
+create or replace function max_price()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where home_apps.price = (select max(home_apps.price) from home_apps);
+end;
+$$ LANGUAGE plpgsql;
+
+\\\\\\\\
+
+create or replace function min_price()
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where home_apps.price = (select min(home_apps.price) from home_apps);
+end;
+$$ LANGUAGE plpgsql;
+
+\\\\\\\
+
+create or replace function avg_price()
+returns float
+as $$
+begin
+	return (select avg(home_apps.price) as price from home_apps);
+end;
+$$ LANGUAGE plpgsql;
+
+---------------------4 функция - цена в заданных пределах---------------------------
+
+create or replace function price_range(bottom_price int, top_price int)
+returns TABLE(id int, app_name varchar(255), price int)
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price
+	from home_apps
+	group by home_apps.app_id having home_apps.price > bottom_price AND home_apps.price < top_price
+	order by home_apps.price;
+end;
+$$ LANGUAGE plpgsql;
+
+---------------------------5 функция - вся техника для заданного производителя-------------------
+
+create or replace function manufacturer_search(manuf_input varchar(255))
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	and manufacturer.manufacturer_name = manuf_input;
+end;
+$$ LANGUAGE plpgsql;
+
+
+-------------------6 функция - доля дешевой техники---------------
+
+
+create or replace function search_lowcost(input_price int)
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from home_apps
+	where home_apps.price <= input_price;
+	select count (*) into b from home_apps;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
+
+
+-------------7 функция - заданная дата выпуска------------------
+
+create or replace function date_search(date)
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), release date, sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.release_date, app_date.sale_date, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where app_date.release_date = $1;
+end;
+$$ LANGUAGE plpgsql;
+
+------------------8 функция - дата продажи в пределах для производителя и в целом -------------------------
+
+create or replace function sale_date_range_all(date, date)
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.sale_date, client.client_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join client on home_apps.client_id = client.client_id
+	where app_date.sale_date >= $1 and app_date.sale_date <= $2
+	order by app_date.sale_date;
+end;
+$$ LANGUAGE plpgsql;
+
+////////////////
+
+create or replace function sale_date_range_name(date, date, varchar(255))
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), sale date, supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.sale_date, client.client_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join client on home_apps.client_id = client.client_id
+	where app_date.sale_date >= $1 and app_date.sale_date <= $2 and manufacturer.manufacturer_name = $3
+	order by app_date.sale_date;
+end;
+$$ LANGUAGE plpgsql;
+
+------------ 9 функция - доля за определенный период--------------
+
+create or replace function sale_interval_p(date, date)
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from app_date
+	where app_date.sale_date >= $1 and app_date.sale_date <= $2;
+	select count (*) into b from app_date;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
+
+--------------------функция 10 - самый популярный вид-----------------------
+
+
+create or replace function most_popular()
+returns table(app_name varchar(255), total bigint)
+as $$
+begin
+	return query
+	select home_apps.app_name, count (*) as total from home_apps
+	group by home_apps.app_name
+	limit 1;
+end;
+$$ LANGUAGE plpgsql;
+
+-------------------функция 11 - все техника поставщика, которая дороже, чем средняя цена техники из страны--------------
+
+create or replace function from_manuf_more_country_avg(varchar(255), varchar(255))
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), sale date, supp_name varchar(255), avg_price numeric)
+as $$
+begin
+return query
+with avg_country_price as(
+	select avg(home_apps.price) as avg_price
+	from home_apps
+	inner join country on home_apps.country_id = country.country_id
+	where country.country_name = $2
+)
+select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.sale_date, client.client_name, avg_country_price.avg_price
+from home_apps
+inner join country ON home_apps.country_id = country.country_id
+inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+inner join app_date ON home_apps.app_id = app_date.app_id
+inner join client on home_apps.client_id = client.client_id
+inner join avg_country_price on 1=1
+where manufacturer.manufacturer_name = $1 and home_apps.price >= avg_country_price.avg_price
+order by home_apps.app_id;
+end;
+$$ LANGUAGE plpgsql;
+
+--------------------функция 12 - доля дешевой от поставщика и в целом---------------------
+
+create or replace function supp_cheap_p(int, varchar(255))
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where home_apps.price < $1 
+	and supplier.supplier_id in(
+	select supplier.supplier_id from supplier
+	where supplier.supplier_name = $2);
+	select count (*) into b from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where supplier.supplier_name = $2;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
+
+/////////////
+
+create or replace function all_cheap_p(int)
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where home_apps.price < $1;
+	select count (*) into b from home_apps;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
+
+--------------функция 13 - средняя стоймость за промежуток времени-------------------------
+
+create or replace function avg_price_interval(date, date)
+returns float
+as $$
+begin
+	return (
+	select avg(home_apps.price) from home_apps
+	where home_apps.app_id in(
+	select app_date.app_id from app_date
+	where app_date.sale_date >$1 and app_date.sale_date < $2));
+end;
+$$ LANGUAGE plpgsql;
+
+--------------------функция 14 - техника дороже, чем средняя производителя---------------
+
+create or replace function more_than_manuf_avg(varchar(255))
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), sale date, supp_name varchar(255), avg_price numeric)
+as $$
+begin
+return query
+with avg_manuf_price as(
+	select avg(home_apps.price) as avg_price
+	from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	where manufacturer.manufacturer_name = $1
+)
+select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.sale_date, client.client_name, avg_manuf_price.avg_price
+from home_apps
+inner join country ON home_apps.country_id = country.country_id
+inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+inner join app_date ON home_apps.app_id = app_date.app_id
+inner join client on home_apps.client_id = client.client_id
+inner join avg_manuf_price on 1=1
+where home_apps.price >= avg_manuf_price.avg_price
+order by home_apps.app_id;
+end;
+$$ LANGUAGE plpgsql;
+
+--------------------функция 15 - доля регулярных заданной техники из города---------------
+
+create or replace function app_city_p(varchar, varchar)
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where home_apps.app_name = $1 and supplier.supplier_city = $2;
+	select count (*) into b from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where supplier.supplier_city = $2;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
+
+---------------функция 16 - весь брак из страны от поставщика----------------------
+
+create or replace function discard_country(varchar, varchar)
+returns TABLE(id int, app_name varchar(255), price int, discard bool, country_name varchar(255),
+		 manufact_name varchar(255), supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, home_apps.discard, country.country_name, manufacturer.manufacturer_name, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where home_apps.discard = true and country.country_name = $1 and supplier.supplier_name = $2
+	order by home_apps.app_id;
+end;
+$$ LANGUAGE plpgsql;
+
+---------------------функция 17 - вся техника для клиента за период------------------------
+
+create or replace function sale_to_client_range(varchar(255), date, date)
+returns TABLE(id int, app_name varchar(255), price int, country_name varchar(255),
+		 manufact_name varchar(255), sale date, client varchar(255), supp_name varchar(255))
+as $$
+begin
+	return query
+	select home_apps.app_id, home_apps.app_name, home_apps.price, country.country_name, manufacturer.manufacturer_name, app_date.sale_date, client.client_name, supplier.supplier_name
+	from home_apps
+	inner join country ON home_apps.country_id = country.country_id
+	inner join manufacturer ON home_apps.manufacturer_id= manufacturer.manufacturer_id
+	inner join app_date ON home_apps.app_id = app_date.app_id
+	inner join client on home_apps.client_id = client.client_id
+	inner join supplier on manufacturer.supplier_id = supplier.supplier_id
+	where client.client_name = $1 and app_date.sale_date >= $2 and app_date.sale_date <= $3
+	order by app_date.sale_date;
+end;
+$$ LANGUAGE plpgsql;
+
+------------------------функция 18 - доля дорогой из страны и в целом-----------------
+
+create or replace function country_exp_p(int, varchar(255))
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join country on home_apps.country_id = country.country_id
+	where home_apps.price > $1 
+	and country.country_id in(
+	select country.country_id from supplier
+	where country.country_name = $2);
+	select count (*) into b from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join country on home_apps.country_id = country.country_id
+	where country.country_name = $2;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
+
+\\\\\\\\\\\\\\\\\\\
+
+create or replace function all_exp_p(int)
+returns float
+as $$
+declare
+a float;
+b float;
+begin
+	select count(*) into a from home_apps
+	inner join manufacturer on home_apps.manufacturer_id = manufacturer.manufacturer_id
+	inner join country on home_apps.country_id = country.country_id
+	where home_apps.price > $1 ;
+	select count (*) into b from home_apps;
+	return a/b;
+end;
+$$ LANGUAGE plpgsql;
